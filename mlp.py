@@ -41,9 +41,10 @@ for t in range (1, 4):
 		df2 = df.between_time('20:01','6:59')
 		df2 = (df2 - df2.mean()) / (df2.max() - df2.min())
 
-		for p in range(1, 11):
-			for n in random.sample(xrange(100), 30):
-				print '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
+		for p in range(3, 7):
+			print 'P = {}%'.format(int(((p - 3)*100)/5))
+			c = 0
+			for n in random.sample(xrange(60, 100), 5):
 				print 'Running for params P = {}, N = {}'.format(p, n)
 				print 'Pre-processing...'
 
@@ -63,7 +64,7 @@ for t in range (1, 4):
 					X2.append(df2['count'][i:(i + p)])
 					Y2.append(df2['count'][i + p])
 				
-				print '		Splitting in train-test...'
+				print '   Splitting in train-test...'
 				# Train/test/validation split
 				rows1 = random.sample(range(len(X1)), int(len(X1)/3))
 				rows2 = random.sample(range(len(X2)), int(len(X2)/3))
@@ -77,7 +78,7 @@ for t in range (1, 4):
 				Y1_train = [Y1[j] for j in list(set(range(len(Y1))) - set(rows1))]
 				Y2_train = [Y2[j] for j in list(set(range(len(Y2))) - set(rows2))]
 
-				print '		Initializing the models...'
+				print '   Initializing the models...'
 				# Initializing the models
 				MLP1 = MLPRegressor(hidden_layer_sizes=n)
 				MLP1transformed = MLPRegressor(hidden_layer_sizes=n)
@@ -94,8 +95,7 @@ for t in range (1, 4):
 				print 'Running tests...'
 				for test in range(0, 30):
 					if(test % 6 == 5):
-						print test
-						print '{}%'.format(int(((test + 1)*100)/30))
+						print 'T = {}%'.format(int(((test + 1)*100)/30))
 					MLP1.fit(X1_train, Y1_train)
 					predicted1 = MLP1.predict(X1_test)
 					MLP2.fit(X2_train, Y2_train)
@@ -119,3 +119,9 @@ for t in range (1, 4):
 				output_file.write('Results for 20:01-06:59')
 				output_file.write('Min: {}'.format(min(results2)))
 				output_file.write('Avg MAPE: {}'.format(np.mean(results2)))
+				output_file.flush()
+
+				print '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
+				c = c + 1
+				print 'N= {}%'.format(c * 20)
+			print '> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >'
