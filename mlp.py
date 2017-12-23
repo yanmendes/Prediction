@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 def MAPE(y_true, y_pred):
 	errors = list()
 	for i in range(len(y_true)):
-		errors.append(abs(y_true[i] - y_pred[i])/y_true[i])
+		errors.append(abs(y_true[i] - y_pred[i]/y_true[i]))
 	return np.mean(errors)
 
 # Loading Data
@@ -35,20 +35,18 @@ for t in range (1, 4):
 
 		# Highest values of the series
 		df1 = df.between_time('7:00','20:00')
-		df1 = (df1 - df1.mean()) / (df1.max() - df1.min())
+		df1 = abs(df1 - df1.mean()) / (df1.max() - df1.min())
 
 		# lowest values of the series
 		df2 = df.between_time('20:01','6:59')
-		df2 = (df2 - df2.mean()) / (df2.max() - df2.min())
+		df2 = abs(df2 - df2.mean()) / (df2.max() - df2.min())
 
-		for p in range(3, 7):
-			print 'P = {}%'.format(int(((p - 3)*100)/5))
-			c = 0
-			for n in random.sample(xrange(60, 100), 5):
+		for p in range(3, 16):
+			for n in random.sample(xrange(40, 100), 10):
 				print 'Running for params P = {}, N = {}'.format(p, n)
 				print 'Pre-processing...'
 
-				output_file.write('Running for params P = {}, N = {}'.format(p, n))
+				output_file.write('Running for params P = {}, N = {}\n'.format(p, n))
 
 				# Initializing the data data
 				X1 = list()
@@ -102,26 +100,15 @@ for t in range (1, 4):
 					predicted2 = MLP2.predict(X2_test)
 					results1.append(MAPE(Y1_test, predicted1))
 					results2.append(MAPE(Y2_test, predicted2))
-					# Plot outputs
-					plt.plot(Y1_test, color='black')
-					plt.plot(predicted1, color='red')
-					plt.savefig('./{}/7-20-{}-{}-{}.eps'.format(5*t, p, n, test), format='eps')
 
-					# Plot outputs
-					plt.plot(Y2_test, color='black')
-					plt.plot(predicted2, color='red')
-					plt.savefig('./{}/20-7-{}-{}-{}.eps'.format(5*t, p, n, test), format='eps')
+				output_file.write('Results for 07:00-20:00\n')
+				output_file.write('Min: {}\n'.format(min(results1)))
+				output_file.write('Avg MAPE: {}\n'.format(np.mean(results1)))
 
-				output_file.write('Results for 07:00-20:00')
-				output_file.write('Min: {}'.format(min(results1)))
-				output_file.write('Avg MAPE: {}'.format(np.mean(results1)))
-
-				output_file.write('Results for 20:01-06:59')
-				output_file.write('Min: {}'.format(min(results2)))
-				output_file.write('Avg MAPE: {}'.format(np.mean(results2)))
+				output_file.write('Results for 20:01-06:59\n')
+				output_file.write('Min: {}\n'.format(min(results2)))
+				output_file.write('Avg MAPE: {}\n\n'.format(np.mean(results2)))
 				output_file.flush()
 
 				print '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
-				c = c + 1
-				print 'N= {}%'.format(c * 20)
-			print '> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >'
+			print '> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >'
