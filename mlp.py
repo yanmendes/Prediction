@@ -64,7 +64,7 @@ for t in range (1, 4):
 			for p in range(MIN_P, MAX_P + 1):
 				for q in range(MIN_Q, MAX_Q + 1):
 					for n in range(60, 81):
-						print 'Running for params P = {}, Q = {}, N = {}'.format(p, q, n)
+						print('Running for params P = {}, Q = {}, N = {}'.format(p, q, n))
 						print 'Pre-processing...'
 
 						nn_file.write('Running for params P = {}, Q = {}, N = {}\n'.format(p, q, n))
@@ -150,7 +150,7 @@ for t in range (1, 4):
 							for i in range(0, 9):
 								plt.plot(Y1_test[i * 100: i * 100 + 100], color='black')
 								plt.plot(predicted1[i * 100:i * 100 + 100], color='red')
-								plt.savefig('./{}/{}_{}_{}_{}_{}.eps'.format(5*t, p, q, n, test, i))
+								plt.savefig('./{}/{}_{}_{}_{}_{}.eps'.format(5*t, p, q, n, test, i), figsize=(8, 4	))
 								plt.gcf().clear()
 
 							regressor1.fit(X1_train, Y1_train)
