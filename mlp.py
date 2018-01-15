@@ -129,7 +129,7 @@ for t in range (1, 4):
 						print('Running tests...')
 						for test in range(0, 30):
 							if(test % 6 == 5):
-								print 'T = {}%'.format(int(((test + 1)*100)/30))
+								print('T = {}%'.format(int(((test + 1)*100)/30)))
 							MLP1.fit(X1_train, Y1_train)
 							predicted1 = MLP1.predict(X1_test)
 							MLP2.fit(X2_train, Y2_train)
