@@ -65,7 +65,7 @@ for t in range (1, 4):
 				for q in range(MIN_Q, MAX_Q + 1):
 					for n in range(60, 81):
 						print('Running for params P = {}, Q = {}, N = {}'.format(p, q, n))
-						print 'Pre-processing...'
+						print('Pre-processing...')
 
 						nn_file.write('Running for params P = {}, Q = {}, N = {}\n'.format(p, q, n))
 						rbm_file.write('Running for params P = {}, Q = {}, N = {}\n'.format(p, q, n))
@@ -90,7 +90,7 @@ for t in range (1, 4):
 							X2.append(flatten(X + flatten(df2['count'][i:(i + p)])))
 							Y2.append(df2['count'][i + p])
 						
-						print '   Splitting in train-test...'
+						print('   Splitting in train-test...')
 						# Train/test/validation split
 						rows1 = random.sample(range(len(X1)), int(len(X1)/3))
 						rows2 = random.sample(range(len(X2)), int(len(X2)/3))
@@ -111,7 +111,7 @@ for t in range (1, 4):
 						for i in range(0, len(Y2_test)):
 							Y2_test[i] = int(Y2_test[i] * (df2_max - df2_min) + df2_min)
 
-						print '   Initializing the models...'
+						print('   Initializing the models...')
 						# Initializing the models
 						MLP1 = MLPRegressor(hidden_layer_sizes=n, activation='logistic')
 						MLP2 = MLPRegressor(hidden_layer_sizes=n, activation='logistic')
@@ -126,7 +126,7 @@ for t in range (1, 4):
 						results_nn2 = list()
 						results_rbm1 = list()
 						results_rbm2 = list()
-						print 'Running tests...'
+						print('Running tests...')
 						for test in range(0, 30):
 							if(test % 6 == 5):
 								print 'T = {}%'.format(int(((test + 1)*100)/30))
@@ -179,7 +179,7 @@ for t in range (1, 4):
 						rbm_file.flush()
 
 						n = n + STEP_N - 1
-						print '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
-					print '> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >'
+						print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
+					print('> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >')
 					q = q + STEP_Q - 1
 				p = p + STEP_P - 1
