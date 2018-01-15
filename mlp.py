@@ -5,11 +5,20 @@ from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from pandas.tseries.offsets import BDay
-from compiler.ast import flatten
 import numpy as np
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
+import collections
+def flatten(x):
+	
+    result = []
+    for el in x:
+        if isinstance(x, collections.Iterable) and not isinstance(el, str):
+            result.extend(flatten(el))
+        else:
+            result.append(el)
+    return result
 
 def MAPE(y_true, y_pred):
 	errors = 0
