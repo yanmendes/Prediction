@@ -5,20 +5,12 @@ from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from pandas.tseries.offsets import BDay
+from compiler.ast import flatten
 import numpy as np
 import random
 import pandas as pd
 import matplotlib.pyplot as plt
 import collections
-def flatten(x):
-	
-    result = []
-    for el in x:
-        if isinstance(x, collections.Iterable) and not isinstance(el, str):
-            result.extend(flatten(el))
-        else:
-            result.append(el)
-    return result
 
 def MAPE(y_true, y_pred):
 	errors = 0
@@ -155,7 +147,7 @@ for t in range (1, 4):
 
 							results_nn1.append(MAPE(Y1_test, predicted1))
 							results_nn2.append(MAPE(Y2_test, predicted2))
-							
+							plt.switch_backend('agg')
 							for i in range(0, 9):
 								plt.plot(Y1_test[i * 100: i * 100 + 100], color='black')
 								plt.plot(predicted1[i * 100:i * 100 + 100], color='red')
