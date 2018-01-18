@@ -11,12 +11,13 @@ import random
 import pandas as pd
 import matplotlib.pyplot as plt
 import collections
+import math
 
-def MAPE(y_true, y_pred):
+def RMSD(y_true, y_pred):
 	errors = 0
 	for i in range(len(y_true)):
-		errors = errors + abs(y_true[i] - y_pred[i]/y_true[i])
-	return 100 * errors / len(y_pred)
+		errors = errors + math.sqrt(math.pow((y_true[i] - y_pred[i]), 2))
+	return errors / len(y_pred)
 
 # Loading Data
 df = pd.read_csv("ts.csv", header=0)
@@ -26,8 +27,10 @@ MAX_P = 15
 STEP_P = 5
 MIN_Q = 3
 MAX_Q = 5
-STEP_P = 1
-STEP_N = 5
+STEP_Q = 1
+MIN_N = 60
+MAX_N = 120
+STEP_N = 10
 
 # Indexing the data
 df['date'] = pd.to_datetime(df['date'])
@@ -48,7 +51,7 @@ for t in range (1, 4):
 			for i in range (1, MAX_Q + 1):
 				df['count-{}'.format(i)] = df['count'].shift(7 * 24 * (60 / (5 * t)) * i)
 
-			df = df.fillna(1)
+			df = df.fillna(0)
 
 			# Highest values of the series
 			df1 = df.between_time('7:00','20:00')
@@ -62,9 +65,9 @@ for t in range (1, 4):
 			df2_min = df2.min()['count']
 			df2 = abs(df2 - df2.min()) / (df2.max() - df2.min())
 
-			for p in range(MIN_P, MAX_P + 1):
-				for q in range(MIN_Q, MAX_Q + 1):
-					for n in range(60, 81):
+			for p in xrange(MIN_P, MAX_P + 1, STEP_P):
+				for q in xrange(MIN_Q, MAX_Q + 1, STEP_Q):
+					for n in xrange(MIN_N, MAX_N + 1, STEP_N):
 						print('Running for params P = {}, Q = {}, N = {}'.format(p, q, n))
 						print('Pre-processing...')
 
@@ -145,42 +148,38 @@ for t in range (1, 4):
 							for i in range(0, len(predicted2)):
 								predicted2[i] = int(predicted2[i] * (df2_max - df2_min) + df2_min)
 
-							results_nn1.append(MAPE(Y1_test, predicted1))
-							results_nn2.append(MAPE(Y2_test, predicted2))
-							plt.switch_backend('agg')
+							results_nn1.append(RMSD(Y1_test, predicted1))
+							results_nn2.append(RMSD(Y2_test, predicted2))
+							
 							for i in range(0, 9):
 								plt.plot(Y1_test[i * 100: i * 100 + 100], color='black')
 								plt.plot(predicted1[i * 100:i * 100 + 100], color='red')
-								plt.savefig('./{}/{}_{}_{}_{}_{}.eps'.format(5*t, p, q, n, test, i), figsize=(8, 4	))
+								plt.savefig('./{}/{}_{}_{}_{}_{}.eps'.format(5*t, p, q, n, test, i), figsize=(8, 4))
 								plt.gcf().clear()
 
 							regressor1.fit(X1_train, Y1_train)
 							predicted1 = regressor1.predict(X1_test)
 							regressor2.fit(X2_train, Y2_train)
 							predicted2 = regressor2.predict(X2_test)
-							results_rbm1.append(MAPE(Y1_test, predicted1))
-							results_rbm2.append(MAPE(Y2_test, predicted2))
+							results_rbm1.append(RMSD(Y1_test, predicted1))
+							results_rbm2.append(RMSD(Y2_test, predicted2))
 
 						nn_file.write('Results for 07:00-20:00\n')
 						nn_file.write('Min: {}\n'.format(min(results_nn1)))
-						nn_file.write('Avg MAPE: {}\n'.format(np.mean(results_nn1)))
+						nn_file.write('Avg RMSD: {}\n'.format(np.mean(results_nn1)))
 
 						nn_file.write('Results for 20:01-06:59\n')
 						nn_file.write('Min: {}\n'.format(min(results_nn2)))
-						nn_file.write('Avg MAPE: {}\n\n'.format(np.mean(results_nn2)))
+						nn_file.write('Avg RMSD: {}\n\n'.format(np.mean(results_nn2)))
 						nn_file.flush()
 
 						rbm_file.write('Results for 07:00-20:00\n')
 						rbm_file.write('Min: {}\n'.format(min(results_rbm1)))
-						rbm_file.write('Avg MAPE: {}\n'.format(np.mean(results_rbm1)))
+						rbm_file.write('Avg RMSD: {}\n'.format(np.mean(results_rbm1)))
 
 						rbm_file.write('Results for 20:01-06:59\n')
 						rbm_file.write('Min: {}\n'.format(min(results_rbm2)))
-						rbm_file.write('Avg MAPE: {}\n\n'.format(np.mean(results_rbm2)))
+						rbm_file.write('Avg RMSD: {}\n\n'.format(np.mean(results_rbm2)))
 						rbm_file.flush()
-
-						n = n + STEP_N - 1
 						print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
 					print('> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >')
-					q = q + STEP_Q - 1
-				p = p + STEP_P - 1
