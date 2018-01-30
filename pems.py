@@ -1,5 +1,4 @@
 from sklearn import metrics
-from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import BernoulliRBM
 from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
