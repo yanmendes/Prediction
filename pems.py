@@ -15,8 +15,6 @@ import math
 
 def RMSD(y_true, y_pred):
 	errors = 0
-	print y_true[:6], y_pred[:6]
-	exit()
 	for i in range(len(y_true)):
 		errors = errors + math.sqrt(math.pow((y_true[i] - y_pred[i]), 2))
 	return errors / len(y_pred)
