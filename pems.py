@@ -124,6 +124,10 @@ with open('./PEMS/RBM.txt', 'wb') as rbm_file:
 
 						regressor1.fit(X1_train, Y1_train)
 						predicted1 = regressor1.predict(X1_test)
+
+						for i in range(0, len(predicted1)):
+							predicted1[i] = predicted1[i] * (df1_max - df1_min) + df1_min
+							
 						results_rbm1.append(MAPE(Y1_test, predicted1))
 
 					nn_file.write('Min: {}\n'.format(min(results_nn1)))
