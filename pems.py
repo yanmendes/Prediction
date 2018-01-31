@@ -27,9 +27,9 @@ def MAPE(y_true, y_pred):
 # Loading Data
 df = pd.read_csv("pems.csv", header=0)
 
-MIN_P = 5
-MAX_P = 15
-STEP_P = 5
+MIN_P = 10
+MAX_P = 100
+STEP_P = 10
 MIN_Q = 3
 MAX_Q = 5
 STEP_Q = 1
@@ -81,12 +81,11 @@ with open('./PEMS/RBM.txt', 'wb') as rbm_file:
 					
 					print('   Splitting in train-test...')
 					# Train/test/validation split
-					rows1 = random.sample(range(len(X1)), int(len(X1)/3))
 
-					X1_test = [X1[j] for j in rows1]
-					Y1_test = [Y1[j] for j in rows1]
-					X1_train = [X1[j] for j in list(set(range(len(X1))) - set(rows1))]
-					Y1_train = [Y1[j] for j in list(set(range(len(Y1))) - set(rows1))]
+					X1_test = X1[:int(len(X1) * (10./12.))]
+					Y1_test = Y1[:int(len(X1) * (10./12.))]
+					X1_train = X1[int(len(X1) * (10./12.)):]
+					Y1_train = Y1[int(len(X1) * (10./12.)):]
 
 					# Denormalizing the data
 					for i in range(0, len(Y1_test)):
