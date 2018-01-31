@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 import collections
 import math
 
-def RMSD(y_true, y_pred):
+def MAPE(y_true, y_pred):
 	errors = 0
 	for i in range(len(y_true)):
-		errors = errors + math.sqrt(math.pow((y_true[i] - y_pred[i]), 2))
+		errors = errors + abs((y_true[i] - y_pred[i])/y_true[i]) 
 	return errors / len(y_pred)
 
 # Loading Data
@@ -46,11 +46,15 @@ for t in range (1, 4):
 			# Resampling to aggregate
 			df = df.resample('{}Min'.format(5 * t)).sum()
 
+			df = df.fillna(0)			
+
+			df['count'] = df['count'] + 1
+
 			# Using historic data from the same weekday
 			for i in range (1, MAX_Q + 1):
 				df['count-{}'.format(i)] = df['count'].shift(7 * 24 * (60 / (5 * t)) * i)
-
-			df = df.fillna(0)
+			
+			df = df.fillna(1)
 
 			# Highest values of the series
 			df1 = df.between_time('7:00','20:00')
@@ -147,8 +151,8 @@ for t in range (1, 4):
 							for i in range(0, len(predicted2)):
 								predicted2[i] = int(predicted2[i] * (df2_max - df2_min) + df2_min)
 
-							results_nn1.append(RMSD(Y1_test, predicted1))
-							results_nn2.append(RMSD(Y2_test, predicted2))
+							results_nn1.append(MAPE(Y1_test, predicted1))
+							results_nn2.append(MAPE(Y2_test, predicted2))
 							
 							for i in range(0, 9):
 								plt.plot(Y1_test[i * 100: i * 100 + 100], color='black')
@@ -160,25 +164,25 @@ for t in range (1, 4):
 							predicted1 = regressor1.predict(X1_test)
 							regressor2.fit(X2_train, Y2_train)
 							predicted2 = regressor2.predict(X2_test)
-							results_rbm1.append(RMSD(Y1_test, predicted1))
-							results_rbm2.append(RMSD(Y2_test, predicted2))
+							results_rbm1.append(MAPE(Y1_test, predicted1))
+							results_rbm2.append(MAPE(Y2_test, predicted2))
 
 						nn_file.write('Results for 07:00-20:00\n')
 						nn_file.write('Min: {}\n'.format(min(results_nn1)))
-						nn_file.write('Avg RMSD: {}\n'.format(np.mean(results_nn1)))
+						nn_file.write('Avg MAPE: {}\n'.format(np.mean(results_nn1)))
 
 						nn_file.write('Results for 20:01-06:59\n')
 						nn_file.write('Min: {}\n'.format(min(results_nn2)))
-						nn_file.write('Avg RMSD: {}\n\n'.format(np.mean(results_nn2)))
+						nn_file.write('Avg MAPE: {}\n\n'.format(np.mean(results_nn2)))
 						nn_file.flush()
 
 						rbm_file.write('Results for 07:00-20:00\n')
 						rbm_file.write('Min: {}\n'.format(min(results_rbm1)))
-						rbm_file.write('Avg RMSD: {}\n'.format(np.mean(results_rbm1)))
+						rbm_file.write('Avg MAPE: {}\n'.format(np.mean(results_rbm1)))
 
 						rbm_file.write('Results for 20:01-06:59\n')
 						rbm_file.write('Min: {}\n'.format(min(results_rbm2)))
-						rbm_file.write('Avg RMSD: {}\n\n'.format(np.mean(results_rbm2)))
+						rbm_file.write('Avg MAPE: {}\n\n'.format(np.mean(results_rbm2)))
 						rbm_file.flush()
 						print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
 					print('> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >')
