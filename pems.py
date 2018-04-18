@@ -11,6 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import collections
 import math
+import csv
 
 def RMSD(y_true, y_pred):
 	errors = 0
@@ -30,8 +31,8 @@ df = pd.read_csv("pems.csv", header=0)
 MIN_P = 10
 MAX_P = 100
 STEP_P = 10
-MIN_Q = 3
-MAX_Q = 5
+MIN_Q = 1
+MAX_Q = 3
 STEP_Q = 1
 MIN_N = 60
 MAX_N = 120
@@ -42,25 +43,40 @@ df['date'] = pd.to_datetime(df['date'])
 df.index = df['date']
 del df['date']
 
-with open('./PEMS/RBM.txt', 'wb') as rbm_file:
-	with open('./PEMS/NN.txt', 'wb') as nn_file:
-		# Pre-processing
+with open('./PEMS/RBM.csv', 'wb') as rbm_file:
+	with open('./PEMS/NN.csv', 'wb') as nn_file:
+		rbmwriter = csv.writer(rbm_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+		nnwriter  = csv.writer(nn_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+
+		rbmwriter.writerow(['P', 'Q', 'N', 'Avg Mape', 'Min MAPE'])
+		nnwriter.writerow(['P', 'Q', 'N', 'Avg Mape', 'Min MAPE'])
+
 		# Getting only business days
 		df = df[df.index.weekday < 5]
 
-		# Using historic data from the same weekday
+		# Using historic data (Q) from the same time and weekday
 		for i in range (1, MAX_Q + 1):
-			df['count-{}'.format(i)] = df['count'].shift(7 * 24 * i)
+			df['count-{}'.format(i)] = df['count'].shift(i * 5 * 24)
 
-		df1 = df.fillna(0)
+		# Change n/a to 1
+		df = df.fillna(0)
 
-		# Highest values of the series
-		df1_max = df1.max()['count']
-		df1_min = df1.min()['count']
-		df1 = abs(df1 - df1.min()) / (df1.max() - df1.min())
+		# Normalizing the data
+		df_max = max(df['count'])
+		df_min = min(df['count'])
+		df['count'] = df['count'] / (df_max - df_min)
+
+		for i in xrange (1, MAX_Q + 1, STEP_Q):
+			df['count-{}'.format(i)] = df['count-{}'.format(i)] / (df_max - df_min)
+
+		df1 = df
 
 		for p in xrange(MIN_P, MAX_P + 1, STEP_P):
 			for q in xrange(MIN_Q, MAX_Q + 1, STEP_Q):
+				aux_df1 = df1
+
+				# Shifiting the data set by Q weeks
+				df1 = df1[q * 5 * 24:]
 				for n in xrange(MIN_N, MAX_N + 1, STEP_N):
 					print('Running for params P = {}, Q = {}, N = {}'.format(p, q, n))
 					print('Pre-processing...')
@@ -68,7 +84,7 @@ with open('./PEMS/RBM.txt', 'wb') as rbm_file:
 					nn_file.write('Running for params P = {}, Q = {}, N = {}\n'.format(p, q, n))
 					rbm_file.write('Running for params P = {}, Q = {}, N = {}\n'.format(p, q, n))
 
-					# Initializing the data data
+					# Initializing the data
 					X1 = list()
 					Y1 = list()
 
@@ -82,14 +98,12 @@ with open('./PEMS/RBM.txt', 'wb') as rbm_file:
 					print('   Splitting in train-test...')
 					# Train/test/validation split
 
-					X1_test = X1[:int(len(X1) * (10./12.))]
-					Y1_test = Y1[:int(len(X1) * (10./12.))]
-					X1_train = X1[int(len(X1) * (10./12.)):]
-					Y1_train = Y1[int(len(X1) * (10./12.)):]
+					rows1 = random.sample(range(len(X1)), int(len(X1)/3))
 
-					# Denormalizing the data
-					for i in range(0, len(Y1_test)):
-						Y1_test[i] = Y1_test[i] * (df1_max - df1_min) + df1_min
+					X1_test = [X1[j] for j in rows1]
+					Y1_test = [Y1[j] for j in rows1]
+					X1_train = [X1[j] for j in list(set(range(len(X1))) - set(rows1))]
+					Y1_train = [Y1[j] for j in list(set(range(len(Y1))) - set(rows1))]
 
 					print('   Initializing the models...')
 					# Initializing the models
@@ -112,11 +126,11 @@ with open('./PEMS/RBM.txt', 'wb') as rbm_file:
 
 						results_nn1.append(MAPE(Y1_test, predicted1))
 						
-						for i in range(0, 9):
-							plt.plot(Y1_test[i * 100: i * 100 + 100], color='black')
-							plt.plot(predicted1[i * 100:i * 100 + 100], color='red')
-							plt.savefig('./PEMS/{}_{}_{}_{}_{}.eps'.format(p, q, n, test, i), figsize=(8, 4))
-							plt.gcf().clear()
+						#for i in range(0, 9):
+							#plt.scatter(range(i * 100, i * 100 + 100), Y1_test[i * 100: i * 100 + 100], color='black')
+							#plt.scatter(range(i * 100, i * 100 + 100), predicted1[i * 100:i * 100 + 100], color='red')
+							#plt.savefig('./PEMS/{}_{}_{}_{}_{}.eps'.format(p, q, n, test, i), figsize=(8, 4))
+							#plt.gcf().clear()
 
 						regressor1.fit(X1_train, Y1_train)
 						predicted1 = regressor1.predict(X1_test)
@@ -126,12 +140,15 @@ with open('./PEMS/RBM.txt', 'wb') as rbm_file:
 							
 						results_rbm1.append(MAPE(Y1_test, predicted1))
 
-					nn_file.write('Min: {}\n'.format(min(results_nn1)))
-					nn_file.write('Avg MAPE: {}\n'.format(np.mean(results_nn1)))
-					nn_file.flush()
+					#nn_file.write('Min: {}\n'.format(min(results_nn1)))
+					#nn_file.write('Avg MAPE: {}\n'.format(np.mean(results_nn1)))
+					#nn_file.flush()
+					nnwriter.writerow([p, q, n, np.mean(results_nn1), min(results_nn1)])
+					rbmwriter.writerow([p, q, n, np.mean(results_rbm1), min(results_rbm1)])
 
-					rbm_file.write('Min: {}\n'.format(min(results_rbm1)))
-					rbm_file.write('Avg MAPE: {}\n'.format(np.mean(results_rbm1)))
-					rbm_file.flush()
+					#rbm_file.write('Min: {}\n'.format(min(results_rbm1)))
+					#rbm_file.write('Avg MAPE: {}\n'.format(np.mean(results_rbm1)))
+					#rbm_file.flush()
 					print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
 				print('> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >')
+				df1 = aux_df1

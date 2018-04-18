@@ -11,21 +11,25 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import collections
 import math
+import csv
 
 def MAPE(y_true, y_pred):
 	errors = 0
 	for i in range(len(y_true)):
-		errors = errors + abs((y_true[i] - y_pred[i])/y_true[i]) 
+		errors = errors + (abs((float(y_true[i]) - float(y_pred[i]))) / float(y_true[i]))
 	return errors / len(y_pred)
 
 # Loading Data
-df = pd.read_csv("ts.csv", header=0)
+df = pd.read_csv("eng.csv", header=0)
 
-MIN_P = 5
-MAX_P = 15
-STEP_P = 5
-MIN_Q = 3
-MAX_Q = 5
+MIN_T = 5
+MAX_T = 15
+STEP_T = 5
+MIN_P = 10
+MAX_P = 100
+STEP_P = 10
+MIN_Q = 1
+MAX_Q = 3
 STEP_Q = 1
 MIN_N = 60
 MAX_N = 120
@@ -36,53 +40,76 @@ df['date'] = pd.to_datetime(df['date'])
 df.index = df['date']
 del df['date']
 
-for t in range (1, 4):
-	with open('./{}/RBM_{}.txt'.format(5*t, 5*t), 'wb') as rbm_file:
-		with open('./{}/NN_{}.txt'.format(5*t, 5*t), 'wb') as nn_file:
+for t in xrange(MIN_T, MAX_T + 1, STEP_T):
+	with open('./{}/RBM_{}.csv'.format(t, t), 'wb') as rbm_file:
+		with open('./{}/NN_{}.csv'.format(t, t), 'wb') as nn_file:
+			# Reading CSV
+			rbmwriter = csv.writer(rbm_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+			nnwriter  = csv.writer(nn_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+
+			# Writing results headers
+			rbmwriter.writerow(['P', 'Q', 'N', 'H', 'Avg Mape', 'Min MAPE'])
+			nnwriter.writerow(['P', 'Q', 'N', 'H', 'Avg Mape', 'Min MAPE'])
+
 			# Pre-processing
-			# Getting only business days
-			df = df[df.index.weekday < 5]
 
-			# Resampling to aggregate
-			df = df.resample('{}Min'.format(5 * t)).sum()
+			# Resampling to aggregate in time windows of T minutes
+			df = df.resample('{}Min'.format(t)).sum()
 
+			# Changing n/a to 0
 			df = df.fillna(0)			
 
+			# Laplace smoothing
 			df['count'] = df['count'] + 1
 
-			# Using historic data from the same weekday
+			# Using historic data (Q) from the same time and weekday
 			for i in range (1, MAX_Q + 1):
-				df['count-{}'.format(i)] = df['count'].shift(7 * 24 * (60 / (5 * t)) * i)
-			
+				df['count-{}'.format(i)] = df['count'].shift(i * 7 * 24 * 60 / t)
+
+			# Change n/a to 1
 			df = df.fillna(1)
 
-			# Highest values of the series
+			# Getting only business days
+			df = df[df.index.weekday < 5]
+			
+			# Splitting the two networks
 			df1 = df.between_time('7:00','20:00')
-			df1_max = df1.max()['count']
-			df1_min = df1.min()['count']
-			df1 = abs(df1 - df1.min()) / (df1.max() - df1.min())
-
-			# lowest values of the series
 			df2 = df.between_time('20:01','6:59')
-			df2_max = df2.max()['count']
-			df2_min = df2.min()['count']
-			df2 = abs(df2 - df2.min()) / (df2.max() - df2.min())
+
+			# Normalizing the data
+			df1_max = max(df1['count'])
+			df1_min = min(df1['count'])
+			df1['count'] = df1['count'] / (df1_max - df1_min)
+
+			for i in range (1, MAX_Q + 1):
+				df1['count-{}'.format(i)] = df1['count-{}'.format(i)] / (df1_max - df1_min)
+
+			df2_max = max(df2['count'])
+			df2_min = min(df2['count'])
+			df2['count'] = df2['count'] / (df2_max - df2_min)
+
+			for i in range (1, MAX_Q + 1):
+				df2['count-{}'.format(i)] = df2['count-{}'.format(i)] / (df2_max - df2_min)
 
 			for p in xrange(MIN_P, MAX_P + 1, STEP_P):
 				for q in xrange(MIN_Q, MAX_Q + 1, STEP_Q):
+					aux_df1 = df1
+					aux_df2 = df2
+
+					# Shifiting the data set by Q weeks
+					df1 = df1[q * (5 * 13 * 60 / t + 5):]
+					df2 = df2[q * (5 * 11 * 60 / t - 5):]
 					for n in xrange(MIN_N, MAX_N + 1, STEP_N):
 						print('Running for params P = {}, Q = {}, N = {}'.format(p, q, n))
 						print('Pre-processing...')
 
-						nn_file.write('Running for params P = {}, Q = {}, N = {}\n'.format(p, q, n))
-						rbm_file.write('Running for params P = {}, Q = {}, N = {}\n'.format(p, q, n))
-
-						# Initializing the data data
+						# Initializing the data
 						X1 = list()
 						X2 = list()
 						Y1 = list()
 						Y2 = list()
 
+						# Mapping each set of variables (P and Q) to their correspondent value
 						for i in range(len(df1) - p):
 							X = list()
 							for j in range (1, MAX_Q + 1):
@@ -111,13 +138,6 @@ for t in range (1, 4):
 						Y1_train = [Y1[j] for j in list(set(range(len(Y1))) - set(rows1))]
 						Y2_train = [Y2[j] for j in list(set(range(len(Y2))) - set(rows2))]
 
-						# Denormalizing the data
-						for i in range(0, len(Y1_test)):
-							Y1_test[i] = int(Y1_test[i] * (df1_max - df1_min) + df1_min)
-
-						for i in range(0, len(Y2_test)):
-							Y2_test[i] = int(Y2_test[i] * (df2_max - df2_min) + df2_min)
-
 						print('   Initializing the models...')
 						# Initializing the models
 						MLP1 = MLPRegressor(hidden_layer_sizes=n, activation='logistic')
@@ -145,21 +165,9 @@ for t in range (1, 4):
 							predicted1 = list(predicted1)
 							predicted2 = list(predicted2)
 
-							for i in range(0, len(predicted1)):
-								predicted1[i] = int(predicted1[i] * (df1_max - df1_min) + df1_min)
-
-							for i in range(0, len(predicted2)):
-								predicted2[i] = int(predicted2[i] * (df2_max - df2_min) + df2_min)
-
 							results_nn1.append(MAPE(Y1_test, predicted1))
 							results_nn2.append(MAPE(Y2_test, predicted2))
 							
-							for i in range(0, 9):
-								plt.plot(Y1_test[i * 100: i * 100 + 100], color='black')
-								plt.plot(predicted1[i * 100:i * 100 + 100], color='red')
-								plt.savefig('./{}/{}_{}_{}_{}_{}.eps'.format(5*t, p, q, n, test, i), figsize=(8, 4))
-								plt.gcf().clear()
-
 							regressor1.fit(X1_train, Y1_train)
 							predicted1 = regressor1.predict(X1_test)
 							regressor2.fit(X2_train, Y2_train)
@@ -167,22 +175,12 @@ for t in range (1, 4):
 							results_rbm1.append(MAPE(Y1_test, predicted1))
 							results_rbm2.append(MAPE(Y2_test, predicted2))
 
-						nn_file.write('Results for 07:00-20:00\n')
-						nn_file.write('Min: {}\n'.format(min(results_nn1)))
-						nn_file.write('Avg MAPE: {}\n'.format(np.mean(results_nn1)))
+						nnwriter.writerow([p, q, n, 1, np.mean(results_nn1), min(results_nn1)])
+						rbmwriter.writerow([p, q, n, 1, np.mean(results_rbm1), min(results_rbm1)])
 
-						nn_file.write('Results for 20:01-06:59\n')
-						nn_file.write('Min: {}\n'.format(min(results_nn2)))
-						nn_file.write('Avg MAPE: {}\n\n'.format(np.mean(results_nn2)))
-						nn_file.flush()
-
-						rbm_file.write('Results for 07:00-20:00\n')
-						rbm_file.write('Min: {}\n'.format(min(results_rbm1)))
-						rbm_file.write('Avg MAPE: {}\n'.format(np.mean(results_rbm1)))
-
-						rbm_file.write('Results for 20:01-06:59\n')
-						rbm_file.write('Min: {}\n'.format(min(results_rbm2)))
-						rbm_file.write('Avg MAPE: {}\n\n'.format(np.mean(results_rbm2)))
-						rbm_file.flush()
+						nnwriter.writerow([p, q, n, 2, np.mean(results_nn2), min(results_nn2)])
+						rbmwriter.writerow([p, q, n, 2, np.mean(results_rbm2), min(results_rbm2)])
 						print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
 					print('> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >')
+					df1 = aux_df1
+					df2 = aux_df2
