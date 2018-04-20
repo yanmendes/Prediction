@@ -20,7 +20,7 @@ def MAPE(y_true, y_pred):
 	return errors / len(y_pred)
 
 # Loading Data
-df = pd.read_csv("eng.csv", header=0)
+df = pd.read_csv("ts.csv", header=0)
 
 MIN_T = 5
 MAX_T = 15
@@ -99,6 +99,7 @@ for t in xrange(MIN_T, MAX_T + 1, STEP_T):
 					# Shifiting the data set by Q weeks
 					df1 = df1[q * (5 * 13 * 60 / t + 5):]
 					df2 = df2[q * (5 * 11 * 60 / t - 5):]
+
 					for n in xrange(MIN_N, MAX_N + 1, STEP_N):
 						print('Running for params P = {}, Q = {}, N = {}'.format(p, q, n))
 						print('Pre-processing...')
@@ -112,17 +113,17 @@ for t in xrange(MIN_T, MAX_T + 1, STEP_T):
 						# Mapping each set of variables (P and Q) to their correspondent value
 						for i in range(len(df1) - p):
 							X = list()
-							for j in range (1, MAX_Q + 1):
-								X.append(df1['count-{}'.format(j)][i])
+							for j in range (1, q + 1):
+								X.append(df1['count-{}'.format(j)][i + p + 1])
 							X1.append(flatten(X + flatten(df1['count'][i:(i + p)])))
-							Y1.append(df1['count'][i + p])
+							Y1.append(df1['count'][i + p + 1])
 
 						for i in range(len(df2) - p):
 							X = list()
-							for j in range (1, MAX_Q + 1):
-								X.append(df2['count-{}'.format(j)][i])
+							for j in range (1, q + 1):
+								X.append(df2['count-{}'.format(j)][i + p + 1])
 							X2.append(flatten(X + flatten(df2['count'][i:(i + p)])))
-							Y2.append(df2['count'][i + p])
+							Y2.append(df2['count'][i + p + 1])
 						
 						print('   Splitting in train-test...')
 						# Train/test/validation split
