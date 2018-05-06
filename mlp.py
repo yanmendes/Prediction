@@ -23,15 +23,15 @@ def MAPE(y_true, y_pred):
 df = pd.read_csv("ts.csv", header=0)
 
 MIN_T = 5
-MAX_T = 15
+MAX_T = 5
 STEP_T = 5
-MIN_P = 10
+MIN_P = 100
 MAX_P = 100
 STEP_P = 10
 MIN_Q = 1
 MAX_Q = 3
 STEP_Q = 1
-MIN_N = 60
+MIN_N = 120
 MAX_N = 120
 STEP_N = 10
 
@@ -41,8 +41,8 @@ df.index = df['date']
 del df['date']
 
 for t in xrange(MIN_T, MAX_T + 1, STEP_T):
-	with open('./{}/RBM_{}.csv'.format(t, t), 'wb') as rbm_file:
-		with open('./{}/NN_{}.csv'.format(t, t), 'wb') as nn_file:
+	with open('./{}/RBM.csv'.format(t, t), 'wb') as rbm_file:
+		with open('./{}/NN.csv'.format(t, t), 'wb') as nn_file:
 			# Reading CSV
 			rbmwriter = csv.writer(rbm_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
 			nnwriter  = csv.writer(nn_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
@@ -111,14 +111,14 @@ for t in xrange(MIN_T, MAX_T + 1, STEP_T):
 						Y2 = list()
 
 						# Mapping each set of variables (P and Q) to their correspondent value
-						for i in range(len(df1) - p):
+						for i in range(len(df1) - p - 1):
 							X = list()
 							for j in range (1, q + 1):
 								X.append(df1['count-{}'.format(j)][i + p + 1])
 							X1.append(flatten(X + flatten(df1['count'][i:(i + p)])))
 							Y1.append(df1['count'][i + p + 1])
 
-						for i in range(len(df2) - p):
+						for i in range(len(df2) - p - 1):
 							X = list()
 							for j in range (1, q + 1):
 								X.append(df2['count-{}'.format(j)][i + p + 1])
