@@ -23,15 +23,15 @@ def MAPE(y_true, y_pred):
 df = pd.read_csv("ts.csv", header=0)
 
 MIN_T = 5
-MAX_T = 5
+MAX_T = 15
 STEP_T = 5
-MIN_P = 100
+MIN_P = 60
 MAX_P = 100
 STEP_P = 10
-MIN_Q = 1
-MAX_Q = 3
+MIN_Q = 0
+MAX_Q = 5
 STEP_Q = 1
-MIN_N = 120
+MIN_N = 60
 MAX_N = 120
 STEP_N = 10
 
