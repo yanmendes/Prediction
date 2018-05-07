@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import collections
 import math
 import csv
+import time
 
 def MAPE(y_true, y_pred):
 	errors = 0
@@ -48,8 +49,8 @@ for t in xrange(MIN_T, MAX_T + 1, STEP_T):
 			nnwriter  = csv.writer(nn_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
 
 			# Writing results headers
-			rbmwriter.writerow(['P', 'Q', 'N', 'H', 'Avg Mape', 'Min MAPE'])
-			nnwriter.writerow(['P', 'Q', 'N', 'H', 'Avg Mape', 'Min MAPE'])
+			rbmwriter.writerow(['P', 'Q', 'N', 'H', 'Avg Mape', 'Min MAPE', 'Avg time'])
+			nnwriter.writerow(['P', 'Q', 'N', 'H', 'Avg Mape', 'Min MAPE', 'Avg time'])
 
 			# Pre-processing
 
@@ -152,33 +153,41 @@ for t in xrange(MIN_T, MAX_T + 1, STEP_T):
 						results_nn2 = list()
 						results_rbm1 = list()
 						results_rbm2 = list()
+
+						avg_mlp_time1 = 0
+						avg_mlp_time2 = 0
+						avg_rbm_time1 = 0
+						avg_rbm_time2 = 0
+
 						print('Running tests...')
 						for test in range(0, 30):
 							if(test % 6 == 5):
 								print('T = {}%'.format(int(((test + 1)*100)/30)))
+
+							start_time = time.time()
 							MLP1.fit(X1_train, Y1_train)
 							predicted1 = MLP1.predict(X1_test)
+							avg_mlp_time1 = avg_mlp_time1 + time.time() - start_time
 							MLP2.fit(X2_train, Y2_train)
 							predicted2 = MLP2.predict(X2_test)
-
-							predicted1 = list(predicted1)
-							predicted2 = list(predicted2)
-
+							avg_mlp_time2 = avg_mlp_time2 + time.time() - start_time
 							results_nn1.append(MAPE(Y1_test, predicted1))
 							results_nn2.append(MAPE(Y2_test, predicted2))
 							
 							regressor1.fit(X1_train, Y1_train)
 							predicted1 = regressor1.predict(X1_test)
+							avg_rbm_time1 = avg_rbm_time1 + time.time() - start_time
 							regressor2.fit(X2_train, Y2_train)
 							predicted2 = regressor2.predict(X2_test)
+							avg_rbm_time2 = avg_rbm_time2 + time.time() - start_time
 							results_rbm1.append(MAPE(Y1_test, predicted1))
 							results_rbm2.append(MAPE(Y2_test, predicted2))
 
-						nnwriter.writerow([p, q, n, 1, np.mean(results_nn1), min(results_nn1)])
-						rbmwriter.writerow([p, q, n, 1, np.mean(results_rbm1), min(results_rbm1)])
+						nnwriter.writerow([p, q, n, 1, np.mean(results_nn1), min(results_nn1), avg_mlp_time1 / 30])
+						rbmwriter.writerow([p, q, n, 1, np.mean(results_rbm1), min(results_rbm1), avg_rbm_time1 / 30])
 
-						nnwriter.writerow([p, q, n, 2, np.mean(results_nn2), min(results_nn2)])
-						rbmwriter.writerow([p, q, n, 2, np.mean(results_rbm2), min(results_rbm2)])
+						nnwriter.writerow([p, q, n, 2, np.mean(results_nn2), min(results_nn2), avg_mlp_time2 / 30])
+						rbmwriter.writerow([p, q, n, 2, np.mean(results_rbm2), min(results_rbm2), avg_rbm_time2 / 30])
 						print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
 					print('> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >')
 					df1 = aux_df1
