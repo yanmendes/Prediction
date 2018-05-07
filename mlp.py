@@ -4,7 +4,6 @@ from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from pandas.tseries.offsets import BDay
-from compiler.ast import flatten
 import numpy as np
 import random
 import pandas as pd
@@ -41,9 +40,9 @@ df['date'] = pd.to_datetime(df['date'])
 df.index = df['date']
 del df['date']
 
-for t in xrange(MIN_T, MAX_T + 1, STEP_T):
-	with open('./{}/RBM.csv'.format(t, t), 'wb') as rbm_file:
-		with open('./{}/NN.csv'.format(t, t), 'wb') as nn_file:
+for t in range(MIN_T, MAX_T + 1, STEP_T):
+	with open('./{}/RBM.csv'.format(t, t), 'w') as rbm_file:
+		with open('./{}/NN.csv'.format(t, t), 'w') as nn_file:
 			# Reading CSV
 			rbmwriter = csv.writer(rbm_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
 			nnwriter  = csv.writer(nn_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
@@ -65,7 +64,7 @@ for t in xrange(MIN_T, MAX_T + 1, STEP_T):
 
 			# Using historic data (Q) from the same time and weekday
 			for i in range (1, MAX_Q + 1):
-				df['count-{}'.format(i)] = df['count'].shift(i * 7 * 24 * 60 / t)
+				df['count-{}'.format(i)] = df['count'].shift(i * 7 * 24 * 60 // t)
 
 			# Change n/a to 1
 			df = df.fillna(1)
@@ -92,16 +91,16 @@ for t in xrange(MIN_T, MAX_T + 1, STEP_T):
 			for i in range (1, MAX_Q + 1):
 				df2['count-{}'.format(i)] = df2['count-{}'.format(i)] / (df2_max - df2_min)
 
-			for p in xrange(MIN_P, MAX_P + 1, STEP_P):
-				for q in xrange(MIN_Q, MAX_Q + 1, STEP_Q):
+			for p in range(MIN_P, MAX_P + 1, STEP_P):
+				for q in range(MIN_Q, MAX_Q + 1, STEP_Q):
 					aux_df1 = df1
 					aux_df2 = df2
 
 					# Shifiting the data set by Q weeks
-					df1 = df1[q * (5 * 13 * 60 / t + 5):]
-					df2 = df2[q * (5 * 11 * 60 / t - 5):]
+					df1 = df1[q * (5 * 13 * 60 // t + 5):]
+					df2 = df2[q * (5 * 11 * 60 // t - 5):]
 
-					for n in xrange(MIN_N, MAX_N + 1, STEP_N):
+					for n in range(MIN_N, MAX_N + 1, STEP_N):
 						print('Running for params P = {}, Q = {}, N = {}'.format(p, q, n))
 						print('Pre-processing...')
 
@@ -116,20 +115,20 @@ for t in xrange(MIN_T, MAX_T + 1, STEP_T):
 							X = list()
 							for j in range (1, q + 1):
 								X.append(df1['count-{}'.format(j)][i + p + 1])
-							X1.append(flatten(X + flatten(df1['count'][i:(i + p)])))
+							X1.append(X + list(df1['count'][i:(i + p)]))
 							Y1.append(df1['count'][i + p + 1])
 
 						for i in range(len(df2) - p - 1):
 							X = list()
 							for j in range (1, q + 1):
 								X.append(df2['count-{}'.format(j)][i + p + 1])
-							X2.append(flatten(X + flatten(df2['count'][i:(i + p)])))
+							X2.append(X + list(df2['count'][i:(i + p)]))
 							Y2.append(df2['count'][i + p + 1])
 						
 						print('   Splitting in train-test...')
 						# Train/test/validation split
-						rows1 = random.sample(range(len(X1)), int(len(X1)/3))
-						rows2 = random.sample(range(len(X2)), int(len(X2)/3))
+						rows1 = random.sample(range(len(X1)), int(len(X1)//3))
+						rows2 = random.sample(range(len(X2)), int(len(X2)//3))
 
 						X1_test = [X1[j] for j in rows1]
 						X2_test = [X2[j] for j in rows2]
