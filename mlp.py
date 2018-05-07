@@ -143,12 +143,10 @@ for t in xrange(MIN_T, MAX_T + 1, STEP_T):
 						# Initializing the models
 						MLP1 = MLPRegressor(hidden_layer_sizes=n, activation='logistic')
 						MLP2 = MLPRegressor(hidden_layer_sizes=n, activation='logistic')
-						SVR1 = SVR()
-						SVR2 = SVR()
-						RBM1 = BernoulliRBM(verbose=False, n_components=n)
-						RBM2 = BernoulliRBM(verbose=False, n_components=n)
-						regressor1 = Pipeline(steps=[('rbm', RBM1), ('SVR', SVR1)])
-						regressor2 = Pipeline(steps=[('rbm', RBM2), ('SVR', SVR2)])
+						regressor1 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)), 										     ('rbm2', BernoulliRBM(verbose=False, n_components=n)), 
+									     ('rbm3', BernoulliRBM(verbose=False, n_components=n)), 										     ('SVR', SVR())])
+						regressor2 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)), 										     ('rbm2', BernoulliRBM(verbose=False, n_components=n)), 
+									     ('rbm3', BernoulliRBM(verbose=False, n_components=n)), 										     ('SVR', SVR())])
 
 						results_nn1 = list()
 						results_nn2 = list()
