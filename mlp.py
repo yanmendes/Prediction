@@ -19,19 +19,29 @@ def MAPE(y_true, y_pred):
 		errors = errors + (abs((float(y_true[i]) - float(y_pred[i]))) / float(y_true[i]))
 	return errors / len(y_pred)
 
+def RSquared(y_true, y_pred_nn, y_pred_rbm):
+	SStot = 0
+	SSres = 0
+
+	for i in range(len(y_true)):
+		SStot = SStot + (float(y_true[i]) - float(y_pred_rbm[i]))**2
+		SSres = SSres + (float(y_true[i]) - float(y_pred_nn[i]))**2
+
+	return 1 - SSres/SStot
+
 # Loading Data
 df = pd.read_csv("ts.csv", header=0)
 
 MIN_T = 5
 MAX_T = 15
 STEP_T = 5
-MIN_P = 60
+MIN_P = 80
 MAX_P = 100
 STEP_P = 10
-MIN_Q = 0
+MIN_Q = 1
 MAX_Q = 5
 STEP_Q = 1
-MIN_N = 60
+MIN_N = 80
 MAX_N = 120
 STEP_N = 10
 
@@ -145,15 +155,21 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 								       ('mlp', MLPRegressor(hidden_layer_sizes=(n, n, n,), activation='logistic'))])
 						MLP2 = Pipeline(steps=[('rbm', BernoulliRBM(verbose=False, n_components=n)),
 								       ('mlp', MLPRegressor(hidden_layer_sizes=(n, n, n,), activation='logistic'))])
-						regressor1 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)), 										     ('rbm2', BernoulliRBM(verbose=False, n_components=n)), 
-									     ('rbm3', BernoulliRBM(verbose=False, n_components=n)), 										     ('SVR', SVR())])
-						regressor2 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)), 										     ('rbm2', BernoulliRBM(verbose=False, n_components=n)), 
-									     ('rbm3', BernoulliRBM(verbose=False, n_components=n)), 										     ('SVR', SVR())])
+						regressor1 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)), 
+									     ('rbm2', BernoulliRBM(verbose=False, n_components=n)),
+									     ('rbm3', BernoulliRBM(verbose=False, n_components=n)),
+ 									     ('SVR', SVR())])
+						regressor2 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)), 
+									     ('rbm2', BernoulliRBM(verbose=False, n_components=n)),
+									     ('rbm3', BernoulliRBM(verbose=False, n_components=n)),
+ 									     ('SVR', SVR())])
 
 						results_nn1 = list()
 						results_nn2 = list()
 						results_rbm1 = list()
 						results_rbm2 = list()
+						results_r21 = list()
+						results_r22 = list()
 
 						avg_mlp_time1 = 0
 						avg_mlp_time2 = 0
@@ -167,27 +183,30 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 
 							start_time = time.time()
 							MLP1.fit(X1_train, Y1_train)
-							predicted1 = MLP1.predict(X1_test)
+							predicted1_nn = MLP1.predict(X1_test)
 							avg_mlp_time1 = avg_mlp_time1 + time.time() - start_time
 							MLP2.fit(X2_train, Y2_train)
-							predicted2 = MLP2.predict(X2_test)
+							predicted2_nn = MLP2.predict(X2_test)
 							avg_mlp_time2 = avg_mlp_time2 + time.time() - start_time
-							results_nn1.append(MAPE(Y1_test, predicted1))
-							results_nn2.append(MAPE(Y2_test, predicted2))
+							results_nn1.append(MAPE(Y1_test, predicted1_nn))
+							results_nn2.append(MAPE(Y2_test, predicted2_nn))
 							
 							regressor1.fit(X1_train, Y1_train)
-							predicted1 = regressor1.predict(X1_test)
+							predicted1_rbm = regressor1.predict(X1_test)
 							avg_rbm_time1 = avg_rbm_time1 + time.time() - start_time
 							regressor2.fit(X2_train, Y2_train)
-							predicted2 = regressor2.predict(X2_test)
+							predicted2_rbm = regressor2.predict(X2_test)
 							avg_rbm_time2 = avg_rbm_time2 + time.time() - start_time
-							results_rbm1.append(MAPE(Y1_test, predicted1))
-							results_rbm2.append(MAPE(Y2_test, predicted2))
+							results_rbm1.append(MAPE(Y1_test, predicted1_rbm))
+							results_rbm2.append(MAPE(Y2_test, predicted2_rbm))
 
-						nnwriter.writerow([p, q, n, 1, np.mean(results_nn1), min(results_nn1), avg_mlp_time1 / 30])
+							results_r21.append(RSquared(Y1_test, predicted1_nn, predicted1_rbm))
+							results_r22.append(RSquared(Y2_test, predicted2_nn, predicted2_rbm))
+
+						nnwriter.writerow([p, q, n, 1, np.mean(results_nn1), min(results_nn1), np.mean(results_r21), avg_mlp_time1 / 30])
 						rbmwriter.writerow([p, q, n, 1, np.mean(results_rbm1), min(results_rbm1), avg_rbm_time1 / 30])
 
-						nnwriter.writerow([p, q, n, 2, np.mean(results_nn2), min(results_nn2), avg_mlp_time2 / 30])
+						nnwriter.writerow([p, q, n, 2, np.mean(results_nn2), min(results_nn2), np.mean(results_r22), avg_mlp_time2 / 30])
 						rbmwriter.writerow([p, q, n, 2, np.mean(results_rbm2), min(results_rbm2), avg_rbm_time2 / 30])
 						print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
 					print('> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >')
