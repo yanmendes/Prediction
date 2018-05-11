@@ -35,10 +35,10 @@ df = pd.read_csv("ts.csv", header=0)
 MIN_T = 5
 MAX_T = 15
 STEP_T = 5
-MIN_P = 80
-MAX_P = 100
-STEP_P = 10
-MIN_Q = 1
+MIN_P = 10
+MAX_P = 15
+STEP_P = 1
+MIN_Q = 0
 MAX_Q = 5
 STEP_Q = 1
 MIN_N = 80
