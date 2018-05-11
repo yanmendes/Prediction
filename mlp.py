@@ -59,7 +59,7 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 
 			# Writing results headers
 			rbmwriter.writerow(['P', 'Q', 'N', 'H', 'Avg Mape', 'Min MAPE', 'Avg time'])
-			nnwriter.writerow(['P', 'Q', 'N', 'H', 'Avg Mape', 'Min MAPE', 'Avg time'])
+			nnwriter.writerow(['P', 'Q', 'N', 'H', 'Avg Mape', 'Min MAPE', 'R2', 'Avg time'])
 
 			# Pre-processing
 
