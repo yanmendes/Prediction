@@ -155,13 +155,9 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 								       ('mlp', MLPRegressor(hidden_layer_sizes=(n, n, n,), activation='logistic'))])
 						MLP2 = Pipeline(steps=[('rbm', BernoulliRBM(verbose=False, n_components=n)),
 								       ('mlp', MLPRegressor(hidden_layer_sizes=(n, n, n,), activation='logistic'))])
-						regressor1 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)), 
-									     ('rbm2', BernoulliRBM(verbose=False, n_components=n)),
-									     ('rbm3', BernoulliRBM(verbose=False, n_components=n)),
+						regressor1 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)),
  									     ('SVR', SVR())])
-						regressor2 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)), 
-									     ('rbm2', BernoulliRBM(verbose=False, n_components=n)),
-									     ('rbm3', BernoulliRBM(verbose=False, n_components=n)),
+						regressor2 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)),
  									     ('SVR', SVR())])
 
 						results_nn1 = list()
