@@ -32,7 +32,7 @@ def RSquared(y_true, y_pred_nn, y_pred_rbm):
 # Loading Data
 df = pd.read_csv("ts.csv", header=0)
 
-MIN_T = 5
+MIN_T = 10
 MAX_T = 15
 STEP_T = 5
 MIN_P = 10
@@ -84,7 +84,6 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 			
 			# Splitting the two networks
 			df1 = df.between_time('7:00','20:00')
-			df2 = df.between_time('20:01','6:59')
 
 			# Normalizing the data
 			df1_max = max(df1['count'])
@@ -94,21 +93,12 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 			for i in range (1, MAX_Q + 1):
 				df1['count-{}'.format(i)] = df1['count-{}'.format(i)] / (df1_max - df1_min)
 
-			df2_max = max(df2['count'])
-			df2_min = min(df2['count'])
-			df2['count'] = df2['count'] / (df2_max - df2_min)
-
-			for i in range (1, MAX_Q + 1):
-				df2['count-{}'.format(i)] = df2['count-{}'.format(i)] / (df2_max - df2_min)
-
 			for p in range(MIN_P, MAX_P + 1, STEP_P):
 				for q in range(MIN_Q, MAX_Q + 1, STEP_Q):
 					aux_df1 = df1
-					aux_df2 = df2
 
 					# Shifiting the data set by Q weeks
 					df1 = df1[q * (5 * 13 * 60 // t + 5):]
-					df2 = df2[q * (5 * 11 * 60 // t - 5):]
 
 					for n in range(MIN_N, MAX_N + 1, STEP_N):
 						print('Running for params P = {}, Q = {}, N = {}'.format(p, q, n))
@@ -116,9 +106,7 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 
 						# Initializing the data
 						X1 = list()
-						X2 = list()
 						Y1 = list()
-						Y2 = list()
 
 						# Mapping each set of variables (P and Q) to their correspondent value
 						for i in range(len(df1) - p - 1):
@@ -128,49 +116,27 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 							X1.append(X + list(df1['count'][i:(i + p)]))
 							Y1.append(df1['count'][i + p + 1])
 
-						for i in range(len(df2) - p - 1):
-							X = list()
-							for j in range (1, q + 1):
-								X.append(df2['count-{}'.format(j)][i + p + 1])
-							X2.append(X + list(df2['count'][i:(i + p)]))
-							Y2.append(df2['count'][i + p + 1])
-						
 						print('   Splitting in train-test...')
 						# Train/test/validation split
 						rows1 = random.sample(range(len(X1)), int(len(X1)//3))
-						rows2 = random.sample(range(len(X2)), int(len(X2)//3))
 
 						X1_test = [X1[j] for j in rows1]
-						X2_test = [X2[j] for j in rows2]
 						Y1_test = [Y1[j] for j in rows1]
-						Y2_test = [Y2[j] for j in rows2]
 						X1_train = [X1[j] for j in list(set(range(len(X1))) - set(rows1))]
-						X2_train = [X2[j] for j in list(set(range(len(X2))) - set(rows2))]
 						Y1_train = [Y1[j] for j in list(set(range(len(Y1))) - set(rows1))]
-						Y2_train = [Y2[j] for j in list(set(range(len(Y2))) - set(rows2))]
 
 						print('   Initializing the models...')
 						# Initializing the models
-						MLP1 = Pipeline(steps=[('rbm', BernoulliRBM(verbose=False, n_components=n)),
-								       ('mlp', MLPRegressor(hidden_layer_sizes=(n, n, n,), activation='logistic'))])
-						MLP2 = Pipeline(steps=[('rbm', BernoulliRBM(verbose=False, n_components=n)),
-								       ('mlp', MLPRegressor(hidden_layer_sizes=(n, n, n,), activation='logistic'))])
+						MLP1 = MLPRegressor(hidden_layer_sizes=(n, n, n,), activation='logistic')
 						regressor1 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)),
- 									     ('SVR', SVR())])
-						regressor2 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)),
  									     ('SVR', SVR())])
 
 						results_nn1 = list()
-						results_nn2 = list()
 						results_rbm1 = list()
-						results_rbm2 = list()
 						results_r21 = list()
-						results_r22 = list()
 
 						avg_mlp_time1 = 0
-						avg_mlp_time2 = 0
 						avg_rbm_time1 = 0
-						avg_rbm_time2 = 0
 
 						print('Running tests...')
 						for test in range(0, 30):
@@ -181,30 +147,19 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 							MLP1.fit(X1_train, Y1_train)
 							predicted1_nn = MLP1.predict(X1_test)
 							avg_mlp_time1 = avg_mlp_time1 + time.time() - start_time
-							MLP2.fit(X2_train, Y2_train)
-							predicted2_nn = MLP2.predict(X2_test)
-							avg_mlp_time2 = avg_mlp_time2 + time.time() - start_time
 							results_nn1.append(MAPE(Y1_test, predicted1_nn))
-							results_nn2.append(MAPE(Y2_test, predicted2_nn))
 							
+							start_time = time.time()
 							regressor1.fit(X1_train, Y1_train)
 							predicted1_rbm = regressor1.predict(X1_test)
 							avg_rbm_time1 = avg_rbm_time1 + time.time() - start_time
-							regressor2.fit(X2_train, Y2_train)
-							predicted2_rbm = regressor2.predict(X2_test)
-							avg_rbm_time2 = avg_rbm_time2 + time.time() - start_time
+							start_time = time.time()
 							results_rbm1.append(MAPE(Y1_test, predicted1_rbm))
-							results_rbm2.append(MAPE(Y2_test, predicted2_rbm))
 
 							results_r21.append(RSquared(Y1_test, predicted1_nn, predicted1_rbm))
-							results_r22.append(RSquared(Y2_test, predicted2_nn, predicted2_rbm))
 
 						nnwriter.writerow([p, q, n, 1, np.mean(results_nn1), min(results_nn1), np.mean(results_r21), avg_mlp_time1 / 30])
 						rbmwriter.writerow([p, q, n, 1, np.mean(results_rbm1), min(results_rbm1), avg_rbm_time1 / 30])
-
-						nnwriter.writerow([p, q, n, 2, np.mean(results_nn2), min(results_nn2), np.mean(results_r22), avg_mlp_time2 / 30])
-						rbmwriter.writerow([p, q, n, 2, np.mean(results_rbm2), min(results_rbm2), avg_rbm_time2 / 30])
 						print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
 					print('> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >')
 					df1 = aux_df1
-					df2 = aux_df2
