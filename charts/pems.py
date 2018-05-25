@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.cluster import KMeans
 
-comp = pandas.read_csv('comp.csv', header=0)
+comp = pandas.read_csv('comp_pems.csv', header=0)
 
 #plt.hist([comp['NN'], comp['RBM']], histtype='bar', color=['red', 'black'], label=['MLP', 'RBM'])
 #plt.legend(prop={'size': 10})
@@ -29,14 +29,14 @@ ax2.set_title('Average evaluation')
 ax1.set_xlabel('Test #')
 ax1.set_ylabel('MAPE')
 ax2.set_xlabel('Test #')
-ax1.scatter(X, comp['NN'], color='blue', marker='x', alpha=0.4, label='MLP')
-ax1.scatter(X, comp['RBM'], color='#ffcf11', marker='v', alpha=0.3, label='RBM')
-ax2.scatter(range(0, len(nn)), nn, color='blue', marker='x', alpha=0.5, label='MLP')
-ax2.scatter(range(0, len(rbm)), rbm, color='#ffcf11', marker='v', alpha=0.5, label='RBM')
+ax1.scatter(X, comp['NN'], color='blue', marker='x', alpha=0.4, label='SmartTraffic')
+ax1.scatter(X, comp['RBM'], color='#ffcf11', marker='v', alpha=0.3, label='Huang et. al')
+ax2.scatter(range(0, len(nn)), nn, color='blue', marker='x', alpha=0.5, label='SmartTraffic')
+ax2.scatter(range(0, len(rbm)), rbm, color='#ffcf11', marker='v', alpha=0.5, label='Huang et. al')
 ax2.legend()
 ax1.legend()
 
-f.savefig('comp.eps')
+f.savefig('comp_pems.eps')
 
 exit()
 
