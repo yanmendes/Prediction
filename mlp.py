@@ -32,7 +32,7 @@ def RSquared(y_true, y_pred_nn, y_pred_rbm):
 # Loading Data
 df = pd.read_csv("ts.csv", header=0)
 
-MIN_T = 10
+MIN_T = 5
 MAX_T = 15
 STEP_T = 5
 MIN_P = 10
@@ -51,8 +51,8 @@ df.index = df['date']
 del df['date']
 
 for t in range(MIN_T, MAX_T + 1, STEP_T):
-	with open('./{}/RBM.csv'.format(t, t), 'w') as rbm_file:
-		with open('./{}/NN.csv'.format(t, t), 'w') as nn_file:
+	with open('./{}/RBM.csv'.format(t, t), 'w', 0) as rbm_file:
+		with open('./{}/NN.csv'.format(t, t), 'w', 0) as nn_file:
 			# Reading CSV
 			rbmwriter = csv.writer(rbm_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
 			nnwriter  = csv.writer(nn_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
@@ -127,7 +127,7 @@ for t in range(MIN_T, MAX_T + 1, STEP_T):
 
 						print('   Initializing the models...')
 						# Initializing the models
-						MLP1 = MLPRegressor(hidden_layer_sizes=(n, n, n,), activation='logistic')
+						MLP1 = MLPRegressor(hidden_layer_sizes=(n, n, n,), activation='relu')
 						regressor1 = Pipeline(steps=[('rbm1', BernoulliRBM(verbose=False, n_components=n)),
  									     ('SVR', SVR())])
 
