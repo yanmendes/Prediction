@@ -51,8 +51,8 @@ df.index = df['date']
 del df['date']
 
 for t in range(MIN_T, MAX_T + 1, STEP_T):
-	with open('./{}/RBM.csv'.format(t, t), 'w', 0) as rbm_file:
-		with open('./{}/NN.csv'.format(t, t), 'w', 0) as nn_file:
+	with open('./{}/RBM.csv'.format(t, t), 'w', 1) as rbm_file:
+		with open('./{}/NN.csv'.format(t, t), 'w', 1) as nn_file:
 			# Reading CSV
 			rbmwriter = csv.writer(rbm_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
 			nnwriter  = csv.writer(nn_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
