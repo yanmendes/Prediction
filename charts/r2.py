@@ -15,10 +15,13 @@ comp = pandas.read_csv('r2.csv', header=0)
 
 #exit()
 
-X = comp['R2']
-nn = list()
-rbm = list()
+L = ['ST (Logistic)', 'ST (ReLU)']
+X = [comp['LOGI'], comp['RELU']]
 
-plt.boxplot(X)
-plt.ylabel('R2 distribution over all runs')
-plt.savefig('r2.eps')
+fig, ax1 = plt.subplots()
+ax1.set_title('R2 distribution over all runs')
+ax1.set_xlabel('Approach')
+ax1.set_ylabel('Value')
+	
+ax1.boxplot(X, labels=L)
+fig.savefig('r2.eps')
