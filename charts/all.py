@@ -33,11 +33,63 @@ if(True):
 	ax2.legend()
 	ax1.legend()
 
-	f.savefig('comp_pems.eps')
+	f.savefig('comp-pems.eps')
+
+#GENERATOR FOR PARAMETER P PEMS
+
+if (True):
+	nn = pandas.read_csv('NN_PEMS.csv', header=0)
+	rbm = pandas.read_csv('RBM_PEMS.csv', header=0)
+
+	f, axarr = plt.subplots(1, sharey=True)
+	axarr.set_title('SmartTraffic Parameters Evaluation')
+	axarr.set_ylabel('MAPE')
+	axarr.set_xlabel('P')
+	df2 = nn.pivot(columns='P', values='Avg Mape')
+	df2.boxplot(ax=axarr)
+	plt.savefig('nn-p-pems.eps')
+
+	f, axarr = plt.subplots(1, sharey=True)
+	axarr.set_title('Huang et. al Parameters Evaluation')
+	axarr.set_ylabel('MAPE')
+	axarr.set_xlabel('P')
+	df2 = rbm.pivot(columns='P', values='Avg Mape')
+	df2.boxplot(ax=axarr)
+	plt.savefig('rbm-p-pems.eps')
+
+#GENERATOR FOR PARAMETERS Q-N PEMS
+
+if (True):
+	nn = pandas.read_csv('NN_PEMS.csv', header=0)
+	rbm = pandas.read_csv('RBM_PEMS.csv', header=0)
+
+	f, axarr = plt.subplots(2, sharey=True, figsize=(8, 7))
+	axarr[0].set_title('SmartTraffic Parameters Evaluation')
+	axarr[0].set_ylabel('MAPE')
+	axarr[1].set_ylabel('MAPE')
+	axarr[0].set_xlabel('Q')
+	axarr[1].set_xlabel('N')
+	df2 = nn.pivot(columns='Q', values='Avg Mape')
+	df2.boxplot(ax=axarr[0])
+	df2 = nn.pivot(columns='N', values='Avg Mape')
+	df2.boxplot(ax=axarr[1])
+	plt.savefig('nn-q-n-pems.eps')
+
+	f, axarr = plt.subplots(2, sharey=True, figsize=(8, 7))
+	axarr[0].set_title('Huang et. al Parameters Evaluation')
+	axarr[0].set_ylabel('MAPE')
+	axarr[1].set_ylabel('MAPE')
+	axarr[0].set_xlabel('Q')
+	axarr[1].set_xlabel('N')
+	df2 = rbm.pivot(columns='Q', values='Avg Mape')
+	df2.boxplot(ax=axarr[0])
+	df2 = rbm.pivot(columns='N', values='Avg Mape')
+	df2.boxplot(ax=axarr[1])
+	plt.savefig('rbm-q-n-pems.eps')
 
 #GENERATOR FOR COMPARISON UNIVERSITY
 
-if(False):
+if(True):
 	comp = pandas.read_csv('comp.csv', header=0)
 
 	X = range(0, len(comp['LOGI']))
@@ -65,11 +117,11 @@ if(False):
 	ax2.legend()
 	ax1.legend()
 
-	f.savefig('comp.eps')
+	f.savefig('comp-ufjf.eps')
 
-#GENERATOR FOR PARAMETER P
+#GENERATOR FOR PARAMETER P UNIVERSITY
 
-if (False):
+if (True):
 	nn = pandas.read_csv('NN.csv', header=0)
 	rbm = pandas.read_csv('RBM.csv', header=0)
 
@@ -79,7 +131,7 @@ if (False):
 	axarr.set_xlabel('P')
 	df2 = nn.pivot(columns='P', values='Avg Mape')
 	df2.boxplot(ax=axarr)
-	plt.savefig('nn-p.eps')
+	plt.savefig('nn-p-ufjf.eps')
 
 	f, axarr = plt.subplots(1, sharey=True)
 	axarr.set_title('Huang et. al Parameters Evaluation')
@@ -87,11 +139,11 @@ if (False):
 	axarr.set_xlabel('P')
 	df2 = rbm.pivot(columns='P', values='Avg Mape')
 	df2.boxplot(ax=axarr)
-	plt.savefig('rbm-p.eps')
+	plt.savefig('rbm-p-ufjf.eps')
 
 #GENERATOR FOR PARAMETERS Q-N
 
-if (False):
+if (True):
 	nn = pandas.read_csv('NN.csv', header=0)
 	rbm = pandas.read_csv('RBM.csv', header=0)
 
@@ -105,7 +157,7 @@ if (False):
 	df2.boxplot(ax=axarr[0])
 	df2 = nn.pivot(columns='N', values='Avg Mape')
 	df2.boxplot(ax=axarr[1])
-	plt.savefig('nn-q-n.eps')
+	plt.savefig('nn-q-n-ufjf.eps')
 
 	f, axarr = plt.subplots(2, sharey=True, figsize=(8, 7))
 	axarr[0].set_title('Huang et. al Parameters Evaluation')
@@ -117,4 +169,4 @@ if (False):
 	df2.boxplot(ax=axarr[0])
 	df2 = rbm.pivot(columns='N', values='Avg Mape')
 	df2.boxplot(ax=axarr[1])
-	plt.savefig('rbm-q-n.eps')
+	plt.savefig('rbm-q-n-ufjf.eps')
