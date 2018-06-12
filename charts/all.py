@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 #GENERATOR FOR COMPARISON
 
 if(True):
-	comp = pandas.read_csv('comp.csv', header=0)
+	comp = pandas.read_csv('comp_pems.csv', header=0)
 
 	X = range(0, len(comp['LOGI']))
 	nn = list()
@@ -37,7 +37,7 @@ if(True):
 
 #GENERATOR FOR PARAMETER P
 
-if (True):
+if (False):
 	nn = pandas.read_csv('NN.csv', header=0)
 	rbm = pandas.read_csv('RBM.csv', header=0)
 
@@ -59,7 +59,10 @@ if (True):
 
 #GENERATOR FOR PARAMETERS Q-N
 
-if (True):
+if (False):
+	nn = pandas.read_csv('NN.csv', header=0)
+	rbm = pandas.read_csv('RBM.csv', header=0)
+
 	f, axarr = plt.subplots(2, sharey=True, figsize=(8, 7))
 	axarr[0].set_title('SmartTraffic Parameters Evaluation')
 	axarr[0].set_ylabel('MAPE')
