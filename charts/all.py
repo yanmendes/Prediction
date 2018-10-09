@@ -1,11 +1,10 @@
 import pandas
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.cluster import KMeans
 
 #GENERATOR FOR COMPARISON
 
-if(True):
+if(False):
 	comp = pandas.read_csv('comp.csv', header=0)
 
 	X = range(0, len(comp['LOGI']))
@@ -44,18 +43,18 @@ if (True):
 	f, axarr = plt.subplots(1, sharey=True)
 	axarr.set_title('SmartTraffic Parameters Evaluation')
 	axarr.set_ylabel('MAPE')
-	axarr.set_xlabel('P')
-	df2 = nn.pivot(columns='P', values='Avg Mape')
+	axarr.set_xlabel('Q')
+	df2 = nn.pivot(columns='Q', values='Avg Mape')
 	df2.boxplot(ax=axarr)
-	plt.savefig('nn-p.eps')
+	plt.savefig('nn-q.eps')
 
 	f, axarr = plt.subplots(1, sharey=True)
 	axarr.set_title('Huang et. al Parameters Evaluation')
 	axarr.set_ylabel('MAPE')
-	axarr.set_xlabel('P')
-	df2 = rbm.pivot(columns='P', values='Avg Mape')
+	axarr.set_xlabel('Q')
+	df2 = rbm.pivot(columns='Q', values='Avg Mape')
 	df2.boxplot(ax=axarr)
-	plt.savefig('rbm-p.eps')
+	plt.savefig('rbm-q.eps')
 
 #GENERATOR FOR PARAMETERS Q-N
 
@@ -64,22 +63,22 @@ if (True):
 	axarr[0].set_title('SmartTraffic Parameters Evaluation')
 	axarr[0].set_ylabel('MAPE')
 	axarr[1].set_ylabel('MAPE')
-	axarr[0].set_xlabel('Q')
+	axarr[0].set_xlabel('P')
 	axarr[1].set_xlabel('N')
-	df2 = nn.pivot(columns='Q', values='Avg Mape')
+	df2 = nn.pivot(columns='P', values='Avg Mape')
 	df2.boxplot(ax=axarr[0])
 	df2 = nn.pivot(columns='N', values='Avg Mape')
 	df2.boxplot(ax=axarr[1])
-	plt.savefig('nn-q-n.eps')
+	plt.savefig('nn-p-n.eps')
 
 	f, axarr = plt.subplots(2, sharey=True, figsize=(8, 7))
 	axarr[0].set_title('Huang et. al Parameters Evaluation')
 	axarr[0].set_ylabel('MAPE')
 	axarr[1].set_ylabel('MAPE')
-	axarr[0].set_xlabel('Q')
+	axarr[0].set_xlabel('P')
 	axarr[1].set_xlabel('N')
-	df2 = rbm.pivot(columns='Q', values='Avg Mape')
+	df2 = rbm.pivot(columns='P', values='Avg Mape')
 	df2.boxplot(ax=axarr[0])
 	df2 = rbm.pivot(columns='N', values='Avg Mape')
 	df2.boxplot(ax=axarr[1])
-	plt.savefig('rbm-q-n.eps')
+	plt.savefig('rbm-p-n.eps')
