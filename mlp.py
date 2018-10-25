@@ -51,7 +51,7 @@ df.index = df['date']
 del df['date']
 
 # Test/train split
-kf = RepeatedKFold(n_splits=2, n_repeats=2)
+kf = RepeatedKFold(n_splits=3, n_repeats=5)
 
 for t in range(MIN_T, MAX_T + 1, STEP_T):
 	with open('./{}/RBM.csv'.format(t, t), 'w', 1) as rbm_file:
