@@ -4,7 +4,7 @@ import numpy as np
 
 #GENERATOR FOR COMPARISON PEMS
 
-if(True):
+if(False):
 	comp = pandas.read_csv('comp_pems.csv', header=0)
 
 	X = range(0, len(comp['LOGI']))
@@ -36,7 +36,7 @@ if(True):
 
 #GENERATOR FOR PARAMETER P PEMS
 
-if (True):
+if (False):
 	nn = pandas.read_csv('NN_PEMS.csv', header=0)
 	rbm = pandas.read_csv('RBM_PEMS.csv', header=0)
 
@@ -58,7 +58,7 @@ if (True):
 
 #GENERATOR FOR PARAMETERS Q-N PEMS
 
-if (True):
+if (False):
 	nn = pandas.read_csv('NN_PEMS.csv', header=0)
 	rbm = pandas.read_csv('RBM_PEMS.csv', header=0)
 

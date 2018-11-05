@@ -3,6 +3,7 @@ from sklearn.neural_network import BernoulliRBM
 from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import RepeatedKFold
 from pandas.tseries.offsets import BDay
 import numpy as np
 import random
@@ -31,6 +32,8 @@ def RSquared(y_true, y_pred_nn, y_pred_rbm):
 
 # Loading Data
 df = pd.read_csv("pems.csv", header=0)
+
+kf = RepeatedKFold(n_splits=3, n_repeats=5)
 
 MIN_P = 10
 MAX_P = 15
@@ -96,15 +99,6 @@ with open('RBM_PEMS.csv', 'w') as rbm_file:
 							X.append(df['count-{}'.format(j)][i + p + 1])
 						X1.append(X + list(df['count'][i:(i + p)]))
 						Y1.append(df['count'][i + p + 1])
-					
-					print('   Splitting in train-test...')
-					# Train/test/validation split
-					rows1 = random.sample(range(len(X1)), int(len(X1)//3))
-
-					X1_test = [X1[j] for j in rows1]
-					Y1_test = [Y1[j] for j in rows1]
-					X1_train = [X1[j] for j in list(set(range(len(X1))) - set(rows1))]
-					Y1_train = [Y1[j] for j in list(set(range(len(Y1))) - set(rows1))]
 
 					print('   Initializing the models...')
 					# Initializing the models
@@ -119,10 +113,12 @@ with open('RBM_PEMS.csv', 'w') as rbm_file:
 					avg_mlp_time1 = 0
 					avg_rbm_time1 = 0
 
+					X1 = np.asarray(X1)
+					Y1 = np.asarray(Y1)
+
 					print('Running tests...')
-					for test in range(0, 30):
-						if(test % 6 == 5):
-							print('T = {}%'.format(int(((test + 1)*100)/30)))
+					for train, test in kf.split(X1):
+						X1_train, X1_test, Y1_train, Y1_test = X1[train], X1[test], Y1[train], Y1[test]
 
 						start_time = time.time()
 						MLP1.fit(X1_train, Y1_train)
@@ -138,8 +134,8 @@ with open('RBM_PEMS.csv', 'w') as rbm_file:
 
 						results_r21.append(RSquared(Y1_test, predicted1_nn, predicted1_rbm))
 
-					nnwriter.writerow([p, q, n, 1, np.mean(results_nn1), min(results_nn1), np.mean(results_r21), avg_mlp_time1 / 30])
-					rbmwriter.writerow([p, q, n, 1, np.mean(results_rbm1), min(results_rbm1), avg_rbm_time1 / 30])
+					nnwriter.writerow([p, q, n, 1, np.mean(results_nn1), min(results_nn1), np.mean(results_r21), avg_mlp_time1 / 15])
+					rbmwriter.writerow([p, q, n, 1, np.mean(results_rbm1), min(results_rbm1), avg_rbm_time1 / 15])
 					print('- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -')
 				print('> > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > >')
 				df = aux_df
